@@ -48,8 +48,6 @@ export default function ThreatNewsPage() {
     ]
 
     return (
-        // This is a direct child of the main element, so it needs to take up full width
-        // The className="w-full" ensures it spans the entire width of the parent
         <div className="w-full">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-bold tracking-tight">Threat News</h1>

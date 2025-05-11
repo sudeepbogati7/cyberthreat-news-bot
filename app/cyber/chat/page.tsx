@@ -37,8 +37,6 @@ interface Message {
   content: string
   timestamp: Date
 }
-
-// Sample threat data for the information panel
 const recentThreats = [
   {
     id: 1,
