@@ -8,14 +8,11 @@ import Link from "next/link"
 
 export function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
-
   useEffect(() => {
     setIsVisible(true)
   }, [])
-
   return (
     <section className="relative overflow-hidden py-20 md:py-28">
-      {/* Animated background elements */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-20 left-10 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="absolute bottom-10 right-10 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
