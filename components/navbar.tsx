@@ -33,8 +33,6 @@ export function Navbar() {
                         </div>
                     </Link>
                 </div>
-
-                {/* Desktop Navigation */}
                 {!isMobile && (
                     <nav className="mx-6 flex items-center space-x-4 lg:space-x-6">
                         <Link
@@ -86,7 +84,6 @@ export function Navbar() {
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-
                     {isMobile && (
                         <Button
                             variant="ghost"
