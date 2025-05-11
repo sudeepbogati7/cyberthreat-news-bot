@@ -39,7 +39,6 @@ export default function CyberLayout({ children }: { children: React.ReactNode })
             </div>
           </header>
           <Suspense>
-            {/* Fixed: Added flex class to make this a flex container */}
             <main className="flex flex-col flex-1 w-full items-start gap-4 p-4 md:gap-8 md:p-6">
               {children}
             </main>
