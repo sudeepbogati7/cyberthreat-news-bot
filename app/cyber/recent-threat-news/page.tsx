@@ -1,177 +1,216 @@
+"use client"
+
+import { useState } from "react"
+import { useNews } from "@/hooks/use-news"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AlertTriangle, ArrowRight, Calendar, Clock, Eye, Globe, Tag, User } from 'lucide-react'
+import { AlertTriangle, ArrowRight, Calendar, Clock, Eye, User } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ThreatNewsPage() {
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Threat News</h1>
-        <Button>
-          Subscribe to Updates
-        </Button>
-      </div>
+    const [activeCategory, setActiveCategory] = useState("all")
+    const [dateFilter, setDateFilter] = useState<string | undefined>(undefined)
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="all">All News</TabsTrigger>
-            <TabsTrigger value="ransomware">Ransomware</TabsTrigger>
-            <TabsTrigger value="vulnerabilities">Vulnerabilities</TabsTrigger>
-            <TabsTrigger value="data-breaches">Data Breaches</TabsTrigger>
-            <TabsTrigger value="advisories">Advisories</TabsTrigger>
-          </TabsList>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Calendar className="mr-2 h-4 w-4" />
-              Filter by Date
-            </Button>
-          </div>
+    // Use our custom hook to fetch news data
+    const { news, isLoading, error, getNewsByCategory } = useNews(activeCategory, dateFilter)
+
+    // Handle category change
+    const handleCategoryChange = (newCategory: string) => {
+        setActiveCategory(newCategory)
+    }
+
+    // Handle date filter toggle
+    const toggleDateFilter = () => {
+        if (dateFilter) {
+            setDateFilter(undefined)
+        } else {
+            // Set to today's date as an example
+            setDateFilter(new Date().toISOString().split("T")[0])
+        }
+    }
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold tracking-tight">Threat News</h1>
+                <Button onClick={() => alert("Subscription feature coming soon!")}>Subscribe to Updates</Button>
+            </div>
+
+            <Tabs value={activeCategory} onValueChange={handleCategoryChange} className="space-y-4">
+                <div className="flex justify-between items-center">
+                    <TabsList>
+                        <TabsTrigger value="all">All News</TabsTrigger>
+                        <TabsTrigger value="ransomware">Ransomware</TabsTrigger>
+                        <TabsTrigger value="vulnerability">Vulnerabilities</TabsTrigger>
+                        <TabsTrigger value="data breach">Data Breaches</TabsTrigger>
+                        <TabsTrigger value="advisory">Advisories</TabsTrigger>
+                    </TabsList>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={toggleDateFilter}>
+                            <Calendar className="mr-2 h-4 w-4" />
+                            {dateFilter ? "Clear Date Filter" : "Filter by Date"}
+                        </Button>
+                    </div>
+                </div>
+
+                {error ? (
+                    <div className="p-4 border border-red-300 bg-red-50 rounded-md">
+                        <h3 className="text-red-800 font-medium">Error loading news</h3>
+                        <p className="text-red-600">{error.message}</p>
+                    </div>
+                ) : (
+                    <>
+                        <TabsContent value="all" className="space-y-4">
+                            {isLoading ? (
+                                <NewsSkeletonGrid />
+                            ) : (
+                                <>
+                                    <NewsGrid news={news} />
+                                    <div className="flex justify-center mt-8">
+                                        <Button variant="outline" onClick={() => alert("Load more functionality coming soon!")}>
+                                            Load More
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </TabsContent>
+
+                        {["ransomware", "vulnerability", "data breach", "advisory"].map((tabValue) => (
+                            <TabsContent key={tabValue} value={tabValue} className="space-y-4">
+                                {isLoading ? (
+                                    <NewsSkeletonGrid />
+                                ) : getNewsByCategory(tabValue).length > 0 ? (
+                                    <>
+                                        <NewsGrid news={getNewsByCategory(tabValue)} />
+                                        <div className="flex justify-center mt-8">
+                                            <Button variant="outline" onClick={() => alert("Load more functionality coming soon!")}>
+                                                Load More
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <EmptyTabContent category={tabValue.replace("-", " ")} />
+                                )}
+                            </TabsContent>
+                        ))}
+                    </>
+                )}
+            </Tabs>
         </div>
+    )
+}
 
-        <TabsContent value="all" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              {
-                title: "Critical Vulnerability Found in Popular Database Software",
-                description: "Security researchers have discovered a critical vulnerability in a widely used database management system that could allow remote code execution.",
-                date: "May 18, 2025",
-                category: "Vulnerability",
-                author: "Security Team",
-                readTime: "5 min read",
-                views: "1.2K",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "Critical",
-              },
-              {
-                title: "New Ransomware Group Targeting Healthcare Sector",
-                description: "A new ransomware group has emerged, specifically targeting healthcare organizations with sophisticated phishing campaigns.",
-                date: "May 17, 2025",
-                category: "Ransomware",
-                author: "Threat Intelligence",
-                readTime: "4 min read",
-                views: "956",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "High",
-              },
-              {
-                title: "Major Data Breach Affects Millions of Users",
-                description: "A major e-commerce platform has disclosed a data breach affecting millions of users, with personal and payment information potentially compromised.",
-                date: "May 16, 2025",
-                category: "Data Breach",
-                author: "Incident Response",
-                readTime: "6 min read",
-                views: "2.3K",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "High",
-              },
-              {
-                title: "Zero-Day Exploit Found in Popular Browser",
-                description: "Security researchers have identified a zero-day vulnerability in a widely used web browser that could allow attackers to execute arbitrary code.",
-                date: "May 15, 2025",
-                category: "Vulnerability",
-                author: "Research Team",
-                readTime: "7 min read",
-                views: "1.8K",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "Critical",
-              },
-              {
-                title: "Government Issues Advisory on State-Sponsored Attacks",
-                description: "National cybersecurity agencies have issued a joint advisory warning about increased state-sponsored cyber attacks targeting critical infrastructure.",
-                date: "May 14, 2025",
-                category: "Advisory",
-                author: "Government Relations",
-                readTime: "8 min read",
-                views: "3.1K",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "Medium",
-              },
-              {
-                title: "New Phishing Campaign Impersonating Financial Institutions",
-                description: "A sophisticated phishing campaign has been detected, targeting customers of major financial institutions with convincing fake login pages.",
-                date: "May 13, 2025",
-                category: "Phishing",
-                author: "Threat Intelligence",
-                readTime: "3 min read",
-                views: "876",
-                image: "/placeholder.svg?height=200&width=400",
-                severity: "Medium",
-              },
-            ].map((article, index) => (
-              <Card key={index} className="overflow-hidden">
-                <div className="relative h-48 w-full">
-                  <img
-                    src={article.image || "/placeholder.svg"}
+// Component to display the news grid
+function NewsGrid({ news }: { news: any[] }) {
+    return (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {news.map((article, index) => (
+                <NewsCard key={index} article={article} />
+            ))}
+        </div>
+    )
+}
+
+// Component for each news card
+function NewsCard({ article }: { article: any }) {
+    return (
+        <Card className="overflow-hidden">
+            <div className="relative h-48 w-full">
+                <img
+                    src={article.image || "/placeholder.svg?height=200&width=400"}
                     alt={article.title}
                     className="h-full w-full object-cover"
-                  />
-                  <Badge
-                    className={`absolute top-2 right-2 ${
-                      article.severity === "Critical"
-                        ? "bg-red-500"
-                        : article.severity === "High"
-                        ? "bg-orange-500"
-                        : "bg-yellow-500"
-                    }`}
-                  >
+                />
+                <Badge
+                    className={`absolute top-2 right-2 ${article.severity === "Critical"
+                            ? "bg-red-500"
+                            : article.severity === "High"
+                                ? "bg-orange-500"
+                                : "bg-yellow-500"
+                        }`}
+                >
                     {article.severity}
-                  </Badge>
-                </div>
-                <CardHeader className="p-4 pb-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                </Badge>
+            </div>
+            <CardHeader className="p-4 pb-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Badge variant="outline">{article.category}</Badge>
                     <div className="flex items-center">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      {article.date}
+                        <Calendar className="mr-1 h-3 w-3" />
+                        {article.date}
                     </div>
-                  </div>
-                  <CardTitle className="line-clamp-2">{article.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <CardDescription className="line-clamp-3">
-                    {article.description}
-                  </CardDescription>
-                </CardContent>
-                <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
-                  <div className="flex items-center gap-4">
+                </div>
+                <CardTitle className="line-clamp-2">{article.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+                <CardDescription className="line-clamp-3">{article.description}</CardDescription>
+            </CardContent>
+            <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground">
+                <div className="flex items-center gap-4">
                     <div className="flex items-center">
-                      <User className="mr-1 h-3 w-3" />
-                      {article.author}
+                        <User className="mr-1 h-3 w-3" />
+                        {article.author}
                     </div>
                     <div className="flex items-center">
-                      <Clock className="mr-1 h-3 w-3" />
-                      {article.readTime}
+                        <Clock className="mr-1 h-3 w-3" />
+                        {article.readTime}
                     </div>
                     <div className="flex items-center">
-                      <Eye className="mr-1 h-3 w-3" />
-                      {article.views}
+                        <Eye className="mr-1 h-3 w-3" />
+                        {article.views}
                     </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto">
+                </div>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0 h-auto"
+                    onClick={() => {
+                        if (article.url) {
+                            window.open(article.url, "_blank")
+                        } else {
+                            alert("Full article coming soon!")
+                        }
+                    }}
+                >
                     Read more <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-          <div className="flex justify-center mt-8">
-            <Button variant="outline">Load More</Button>
-          </div>
-        </TabsContent>
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+}
 
-        {["ransomware", "vulnerabilities", "data-breaches", "advisories"].map((tab) => (
-          <TabsContent key={tab} value={tab} className="h-[400px] flex items-center justify-center border rounded-md">
+// Skeleton loader for news grid
+function NewsSkeletonGrid() {
+    return (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Array(6)
+                .fill(0)
+                .map((_, i) => (
+                    <div key={i} className="border rounded-lg overflow-hidden">
+                        <Skeleton className="h-48 w-full" />
+                        <div className="p-4">
+                            <Skeleton className="h-6 w-[80%] mb-2" />
+                            <Skeleton className="h-4 w-full mb-1" />
+                            <Skeleton className="h-4 w-[90%] mb-1" />
+                            <Skeleton className="h-4 w-[70%]" />
+                        </div>
+                    </div>
+                ))}
+        </div>
+    )
+}
+
+// Empty tab content
+function EmptyTabContent({ category }: { category: string }) {
+    return (
+        <div className="h-[400px] flex items-center justify-center border rounded-md">
             <div className="text-center">
-              <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Content for {tab.replace("-", " ")} will be displayed here</h3>
-              <p className="text-muted-foreground">This tab is currently under development</p>
+                <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No {category} news available</h3>
+                <p className="text-muted-foreground">Check back later for updates</p>
             </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
-  )
+        </div>
+    )
 }
