@@ -34,17 +34,8 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => router.push("/cyber/profile")}>
-            Profile
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/cyber/settings")}>
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/cyber/billing")}>
-            Billing
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+        {/* <DropdownMenuGroup>
+        </DropdownMenuGroup> */}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push("/account/login")}>
           Log out

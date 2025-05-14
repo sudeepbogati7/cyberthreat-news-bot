@@ -24,7 +24,7 @@ const navItems = [
   },
   {
     title: "Threat News",
-    href: "/cyber/threat-news",
+    href: "/cyber/recent-threat-news",
     icon: Newspaper,
   },
   {
