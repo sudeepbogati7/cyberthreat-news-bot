@@ -71,17 +71,6 @@ export function Navbar() {
                 )}
 
                 <div className="flex items-center gap-4">
-                    {!isMobile && (
-                        <>
-                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                                <Search className="h-5 w-5" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
-                                <Bell className="h-5 w-5" />
-                            </Button>
-                        </>
-                    )}
-
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon" className="rounded-full bg-slate-800">
@@ -90,13 +79,10 @@ export function Navbar() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 bg-slate-900 text-white border-slate-800">
                             <DropdownMenuItem className="hover:bg-slate-800">
-                                <Link href="/profile" className="w-full">Profile</Link>
+                                <Link href="/account/register" className="w-full">Register</Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem className="hover:bg-slate-800">
-                                <Link href="/settings" className="w-full">Settings</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="hover:bg-slate-800">
-                                <Link href="/login" className="w-full">Login</Link>
+                                <Link href="/account/login" className="w-full">Login</Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
