@@ -10,7 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useMobile } from "@/hooks/use-mobile";
+import { useMobile } from "@/hooks/use-mobile-custom";
 
 export function Navbar() {
     const isMobile = useMobile();
