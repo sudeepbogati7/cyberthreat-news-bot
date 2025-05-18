@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { AlertTriangle, Zap } from "lucide-react"
+import { AlertTriangle, ArrowRight, Zap } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 export function HeroSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -47,8 +48,8 @@ export function HeroSection() {
               <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600">
                 Explore Threats
               </Button>
-              <Button variant="outline" className="border-slate-700 bg-slate-700 hover:text-white hover:bg-slate-800">
-                Try AI Assistant
+              <Button variant="outline" className="border-slate-700 bg-slate-700 hover:text-white hover:bg-slate-800 transition-all duration-300">
+                <Link className="flex gap-1 items-center group transition-all duration-300" href={'/account/register'}>Try AI Assistant <ArrowRight className="transition-all duration-300 hidden group-hover:block" /> </Link>
               </Button>
             </div>
 

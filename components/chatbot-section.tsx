@@ -157,7 +157,7 @@ export function ChatbotSection() {
                   <div className="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
                   <div className="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
                   <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <div className="mx-auto text-sm font-medium">CyberPulse AI Assistant</div>
+                  <div className="mx-auto text-sm font-medium">DeepCyberQ AI Assistant</div>
                 </div>
                 
                 <div className="p-4 h-[300px] overflow-y-auto">
@@ -232,7 +232,7 @@ export function ChatbotSection() {
                   <Avatar className="h-8 w-8 mr-2 bg-cyan-500/20">
                     <BrainCircuit className="h-4 w-4 text-cyan-500" />
                   </Avatar>
-                  <CardTitle className="text-sm">CyberPulse AI Assistant</CardTitle>
+                  <CardTitle className="text-sm">DeepCyberQ AI Assistant</CardTitle>
                 </div>
                 <div className="flex items-center">
                   <Button 

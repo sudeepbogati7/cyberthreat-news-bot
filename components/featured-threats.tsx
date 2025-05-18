@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, ArrowRight, Shield, Skull, WormIcon as Virus } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 const threatData = [
   {
@@ -73,8 +74,8 @@ export function FeaturedThreats() {
             <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Featured Threats</h2>
             <p className="text-slate-400 mt-1">Stay informed about the latest cybersecurity threats</p>
           </div>
-          <Button variant="outline" className="border-slate-700 hover:bg-slate-800">
-            View All Threats <ArrowRight className="ml-2 h-4 w-4" />
+          <Button variant="outline" className="border-slate-700 bg-slate-600 hover:text-cyan-500 hover:bg-slate-800">
+           <Link className="flex gap-1 items-center hover:gap-3 transition-all duration-300" href={'/threats'}> View All Threats <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </Button>
         </div>
 
