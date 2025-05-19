@@ -8,7 +8,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
         <div className="flex items-center justify-between mb-8">
           <Link href="/" className="flex items-center gap-2">
             <Shield className="h-8 w-8 text-cyan-500" />
-            <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-red-500">Q</span></span>
+            <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-cyan-500">Q</span></span>
           </Link>
           <Link
             href="/"

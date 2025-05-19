@@ -11,6 +11,10 @@ import { Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react'
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+
+
+
 export default function RegisterPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({

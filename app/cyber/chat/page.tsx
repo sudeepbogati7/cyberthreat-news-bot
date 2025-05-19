@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef, useEffect } from "react"
 import {
   Send,
@@ -19,6 +18,7 @@ import {
   Clock,
   BarChart3,
   Bookmark,
+  Link2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,16 +27,22 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
+// API URL (replace with your actual API endpoint or use environment variable)
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 // Types for chat messages
-type MessageType = "user" | "assistant"
+type MessageType = "user" | "assistant" | "error"
 
 interface Message {
   id: string
   type: MessageType
   content: string
   timestamp: Date
+  sources?: string[]
 }
+
 const recentThreats = [
   {
     id: 1,
@@ -70,53 +76,33 @@ const suggestedQuestions = [
   "Explain the MITRE ATT&CK framework",
 ]
 
-// Sample AI responses based on cybersecurity topics
-const getAIResponse = (question: string): string => {
-  const lowerQuestion = question.toLowerCase()
-
-  if (lowerQuestion.includes("blackcat") || lowerQuestion.includes("ransomware")) {
-    return "BlackCat (also known as ALPHV) is a sophisticated ransomware-as-a-service (RaaS) operation that emerged in November 2021. It's written in Rust and targets Windows, Linux, and VMware ESXi systems. BlackCat is known for its double extortion tactics, where attackers both encrypt data and threaten to leak stolen information. Recent campaigns have primarily targeted healthcare, critical infrastructure, and financial services. The FBI has issued alerts about this threat, recommending enhanced security measures including regular backups, network segmentation, and multi-factor authentication."
-  }
-
-  if (lowerQuestion.includes("zero-day") || lowerQuestion.includes("vulnerability")) {
-    return "Recent significant zero-day vulnerabilities include CVE-2023-4863 in Chrome's WebP image processing (patched in September 2023), which allowed remote code execution. Another notable example is CVE-2023-36884 in Microsoft Office, which was exploited before patching. Zero-day vulnerabilities are particularly dangerous because they're unknown to the software vendor and have no patch available when exploitation begins. The best protection against zero-days includes keeping systems updated, implementing defense-in-depth strategies, using endpoint detection and response (EDR) solutions, and following the principle of least privilege."
-  }
-
-  if (lowerQuestion.includes("phishing")) {
-    return "Phishing attacks remain one of the most common initial access vectors. To protect against phishing: 1) Implement email filtering solutions, 2) Train employees to identify suspicious emails (checking sender addresses, being wary of urgent requests, hovering over links before clicking), 3) Use multi-factor authentication, 4) Keep systems and browsers updated, 5) Deploy anti-phishing tools, 6) Establish clear procedures for reporting suspicious emails, and 7) Conduct regular phishing simulations to test awareness. Recent sophisticated phishing campaigns have used AI-generated content and are increasingly targeting mobile devices through SMS (smishing) and voice calls (vishing)."
-  }
-
-  if (lowerQuestion.includes("attack vector") || lowerQuestion.includes("common attack")) {
-    return "The most common attack vectors in 2023 include: 1) Phishing and social engineering, 2) Exploitation of unpatched vulnerabilities, 3) Weak or stolen credentials, 4) Supply chain compromises, 5) Insider threats, 6) API vulnerabilities, 7) Cloud misconfigurations, and 8) IoT device vulnerabilities. Ransomware attacks have evolved to include triple extortion tactics, and nation-state actors are increasingly targeting critical infrastructure. Zero-day exploits in widely used software like Chrome and Microsoft products continue to pose significant threats."
-  }
-
-  if (lowerQuestion.includes("mitre") || lowerQuestion.includes("att&ck")) {
-    return "The MITRE ATT&CK framework is a globally-accessible knowledge base of adversary tactics and techniques based on real-world observations. It provides a common language for describing cyber attack behaviors across different platforms (Windows, macOS, Linux, cloud, mobile, etc.). The framework organizes attacks into tactical categories including Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, and Impact. Security teams use ATT&CK to understand threat actor behaviors, assess security posture, improve detection capabilities, and communicate about threats consistently."
-  }
-
-  // Default response for other questions
-  return "I'm your cybersecurity assistant. I can provide information about recent threats, vulnerabilities, attack techniques, and security best practices. Could you provide more details about what specific cybersecurity information you're looking for? I can help with topics like ransomware, phishing, zero-day vulnerabilities, threat actors, or security controls."
-}
-
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       type: "assistant",
-      content: "Hello! I'm your CyberPulse AI assistant. How can I help you with cybersecurity threats and news today?",
+      content: "Hello! I'm your DeepCyberQ AI assistant. How can I help you with cybersecurity threats and news today?",
       timestamp: new Date(),
     },
   ])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll to bottom of messages within the chat box only
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current && scrollAreaRef.current) {
+      const scrollableArea = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
+      if (scrollableArea) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ block: "end", inline: "nearest" })
+        }, 100)
+      }
+    }
   }, [messages])
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return
 
     // Add user message
@@ -131,18 +117,43 @@ export default function ChatPage() {
     setInputValue("")
     setIsLoading(true)
 
-    // Simulate AI response with a slight delay
-    setTimeout(() => {
+    try {
+      // Send API request
+      const response = await fetch(`${API_URL}/news/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify({ query: userMessage.content }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`)
+      }
+
+      const data = await response.json()
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "assistant",
-        content: getAIResponse(userMessage.content),
+        content: data.data?.answer || "Sorry, I couldn't process your request. Please try again.",
         timestamp: new Date(),
+        sources: data.data?.sources || [],
       }
 
       setMessages((prev) => [...prev, aiResponse])
+    } catch (error) {
+      console.error("Error fetching AI response:", error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "error",
+        content: "An error occurred while fetching the response. Please try again later.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -154,7 +165,6 @@ export default function ChatPage() {
 
   const handleSuggestedQuestion = (question: string) => {
     setInputValue(question)
-    // Focus the input after setting the value
     const inputElement = document.getElementById("chat-input")
     if (inputElement) {
       inputElement.focus()
@@ -180,6 +190,32 @@ export default function ChatPage() {
     }
   }
 
+  const getMessageStyles = (type: MessageType) => {
+    switch (type) {
+      case "user":
+        return "bg-cyan-500 text-white"
+      case "error":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+      case "assistant":
+      default:
+        return "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+    }
+  }
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (messagesEndRef.current && scrollAreaRef.current) {
+        const scrollableArea = scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]")
+        if (scrollableArea) {
+          messagesEndRef.current.scrollIntoView({ block: "end", inline: "nearest" })
+        }
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
@@ -191,46 +227,71 @@ export default function ChatPage() {
         </div>
       </div>
 
+      <Alert className="mb-4 bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200 dark:border-amber-900/30">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Warning: Chat history is not saved. All messages will be lost if you refresh the page or navigate away.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chat section - takes up 2/3 of the space on large screens */}
         <div className="lg:col-span-2">
-          <Card className="h-[calc(100vh-12rem)]">
+          <Card className="h-[calc(100vh-16rem)] flex flex-col overflow-hidden">
             <CardHeader className="px-4 py-3 border-b">
               <div className="flex items-center">
                 <Bot className="h-5 w-5 text-cyan-500 mr-2" />
-                <CardTitle className="text-lg">CyberPulse AI Assistant</CardTitle>
+                <CardTitle className="text-lg">DeepCyberQ AI Assistant</CardTitle>
               </div>
               <CardDescription>Powered by advanced threat intelligence</CardDescription>
             </CardHeader>
 
-            <CardContent className="p-0 flex flex-col h-[calc(100%-8rem)]">
-              {/* Chat messages */}
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
+            <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
+              <ScrollArea
+                ref={scrollAreaRef}
+                className="flex-1 px-4"
+                style={{
+                  height: "calc(100vh - 24rem)",
+                }}
+                scrollHideDelay={100}
+              >
+                <div className="py-20 space-y-4">
                   {messages.map((message) => (
                     <div
                       key={message.id}
                       className={`flex ${message.type === "user" ? "justify-end" : "justify-start"}`}
                     >
-                      <div
-                        className={`
-                          max-w-[80%] rounded-lg p-3 
-                          ${
-                            message.type === "user"
-                              ? "bg-cyan-500 text-white"
-                              : "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                          }
-                        `}
-                      >
+                      <div className={`max-w-[80%] rounded-lg p-3 ${getMessageStyles(message.type)}`}>
                         <div className="flex items-center gap-2 mb-1">
                           {message.type === "assistant" ? (
                             <Bot className="h-4 w-4 text-cyan-500" />
-                          ) : (
+                          ) : message.type === "user" ? (
                             <User className="h-4 w-4 text-white" />
+                          ) : (
+                            <AlertTriangle className="h-4 w-4 text-red-500" />
                           )}
                           <span className="text-xs opacity-70">{formatTime(message.timestamp)}</span>
                         </div>
-                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                        {message.sources && message.sources.length > 0 && (
+                          <div className="mt-2">
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Sources:</p>
+                            <ul className="mt-1 space-y-1">
+                              {message.sources.map((source, index) => (
+                                <li key={index} className="text-xs">
+                                  <a
+                                    href={source}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-cyan-500 hover:underline flex items-center"
+                                  >
+                                    <Link2 className="h-3 w-3 mr-1" />
+                                    <span className="truncate">{source}</span>
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -261,16 +322,15 @@ export default function ChatPage() {
                 </div>
               </ScrollArea>
 
-              {/* Suggested questions */}
               <div className="p-4 border-t dark:border-slate-800">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Suggested questions:</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
                   {suggestedQuestions.map((question, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       size="sm"
-                      className="text-xs h-auto py-1.5"
+                      className="text-xs h-auto py-1.5 whitespace-normal text-left justify-start"
                       onClick={() => handleSuggestedQuestion(question)}
                     >
                       {question}
@@ -304,7 +364,6 @@ export default function ChatPage() {
           </Card>
         </div>
 
-        {/* Information panel - takes up 1/3 of the space on large screens */}
         <div className="lg:col-span-1">
           <Tabs defaultValue="threats">
             <TabsList className="grid grid-cols-3 mb-4">
@@ -531,7 +590,7 @@ export default function ChatPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-slate-600 dark:text-slate-400">
-                    The CyberPulse AI Assistant provides information about cybersecurity threats, vulnerabilities,
+                    The DeepCyberQ AI Assistant provides information about cybersecurity threats, vulnerabilities,
                     attack techniques, and security best practices. It's powered by a comprehensive threat intelligence
                     database that's regularly updated with the latest security information.
                   </p>

@@ -83,7 +83,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             setIsLoading(false)
             return
         }
-
+        localStorage.setItem("access_token", data?.data?.access_token)
         // Successful login
         toast.success('Successfully logged in')
         router.push("/dashboard")
@@ -100,7 +100,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Welcome Back</h1>
         <p className="text-slate-400">
-          New to CyberPulse?{" "}
+          New to DeepCyberQ?{" "}
           <Link href="/account/register" className="text-cyan-500 hover:text-cyan-400">
             Create an account
           </Link>

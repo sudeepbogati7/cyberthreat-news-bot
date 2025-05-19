@@ -56,10 +56,10 @@ export function CyberSidebar() {
         <Sidebar className="border-r">
             <SidebarHeader className="flex h-20 items-center border-b px-4">
                 <Link href="/cyber/dashboard" className="flex items-center gap-2">
-                    <Shield className="h-10 w-10 text-red-500" />
+                    <Shield className="h-10 w-10 text-cyan-500" />
 
                     <div className="flex flex-col ">
-                        <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-red-600">Q</span> </span>
+                        <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-cyan-600">Q</span> </span>
                         <div className="text-xs"> Your AI-Powered Cyber Threat Companion.</div>
                     </div>
                 </Link>
@@ -69,7 +69,7 @@ export function CyberSidebar() {
             </SidebarHeader>
             <SidebarContent>
                 <SidebarGroup>
-                    <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
+                    {/* <SidebarGroupLabel>Main Navigation</SidebarGroupLabel> */}
                     <SidebarMenu>
                         {navItems.map((item) => (
                             <SidebarMenuItem key={item.href}>

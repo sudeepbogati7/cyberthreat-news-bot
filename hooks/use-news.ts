@@ -2,17 +2,21 @@ import useSWR from "swr"
 
 // Define the news article type based on the API response
 export interface NewsArticle {
-  source: {
-    id: string | null
-    name: string
-  }
-  author: string
-  title: string
-  description: string
-  url: string
-  urlToImage: string
-  publishedAt: string
-  content: string
+  status: string
+  message: string
+  data: Array<{
+    source: {
+      id: string | null
+      name: string
+    }
+    author: string
+    title: string
+    description: string
+    url: string
+    urlToImage: string
+    publishedAt: string
+    content: string
+  }>
 }
 
 // Define the transformed article type for our UI
@@ -29,17 +33,22 @@ export interface TransformedArticle {
   views: string
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/v1"
+
 // The fetcher function for SWR
 const fetcher = async (url: string) => {
   const response = await fetch(url)
   if (!response.ok) {
-    throw new Error("Failed to fetch news data")
+    throw new Error(`Failed to fetch news data: ${response.status} ${response.statusText}`)
   }
   return response.json()
 }
 
 // Function to determine category based on title and description
-const determineCategory = (article: NewsArticle): string => {
+const determineCategory = (article: {
+  title: string
+  description: string
+}): string => {
   const text = (article.title + " " + article.description).toLowerCase()
 
   if (text.includes("ransomware") || text.includes("ransom")) {
@@ -50,16 +59,30 @@ const determineCategory = (article: NewsArticle): string => {
     return "data breach"
   } else if (text.includes("advisory") || text.includes("warning")) {
     return "advisory"
+  } else if (text.includes("crypto") || text.includes("cryptocurrency")) {
+    return "cryptocurrency" // Added for sample data
+  } else if (text.includes("cyber") && text.includes("crime")) {
+    return "cyber crimes"
+  } else if (text.includes("malware")) {
+    return "malware"
   }
 
   return "general"
 }
 
 // Function to determine severity based on content
-const determineSeverity = (article: NewsArticle): string => {
+const determineSeverity = (article: {
+  title: string
+  description: string
+}): string => {
   const text = (article.title + " " + article.description).toLowerCase()
 
-  if (text.includes("critical") || text.includes("urgent") || text.includes("emergency")) {
+  if (
+    text.includes("critical") ||
+    text.includes("urgent") ||
+    text.includes("emergency") ||
+    text.includes("physical danger")
+  ) {
     return "Critical"
   } else if (text.includes("high") || text.includes("serious") || text.includes("major")) {
     return "High"
@@ -79,58 +102,55 @@ const calculateReadTime = (content: string): string => {
 // Function to format date
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
 // Custom hook for fetching and managing news data
 export function useNews(category = "all", dateFilter?: string) {
-  // In a real app, you would fetch from your actual API endpoint
-  // For this example, we'll use a placeholder URL
-  const { data, error, isLoading } = useSWR<NewsArticle[]>("/api/news", fetcher, {
+  // Construct the API URL with query parameter
+  const url = new URL(`${API_URL}/news/articles`)
+
+  // Add category to the q parameter if it's not "all"
+  if (category && category !== "all") {
+    url.searchParams.append("q", category.trim())
+  }
+
+  // Add date filter if provided
+  if (dateFilter) {
+    url.searchParams.append("date", dateFilter)
+  }
+
+  // Use SWR with correct typing for a single NewsArticle object
+  const { data, error, isLoading, mutate } = useSWR<NewsArticle>(url.toString(), fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // 5 minutes
   })
 
   // Transform the API data to match our UI expectations
-  const transformedData: TransformedArticle[] = data
-    ? data.map((article) => {
-        const category = determineCategory(article)
-        return {
-          title: article.title,
-          description: article.description,
-          image: article.urlToImage || "/placeholder.svg?height=200&width=400",
-          author: article.author?.split(",")[0] || "Unknown",
-          date: formatDate(article.publishedAt),
-          url: article.url,
-          category: category,
-          severity: determineSeverity(article),
-          readTime: calculateReadTime(article.content || ""),
-          views: `${Math.floor(Math.random() * 1000) + 100}`, // Mock data
-        }
-      })
+  const transformedData: TransformedArticle[] = data?.data
+    ? data.data.map((article) => ({
+        title: article.title,
+        description: article.description,
+        image: article.urlToImage || "/data_breach.png",
+        author: article.author?.split(",")[0] || "Unknown",
+        date: formatDate(article.publishedAt),
+        url: article.url,
+        category: determineCategory(article),
+        severity: determineSeverity(article),
+        readTime: calculateReadTime(article.content || ""),
+        views: `${Math.floor(Math.random() * 1000) + 100}`, // Mock data
+      }))
     : []
 
-  // Function to filter news by category
-  const getNewsByCategory = (categoryFilter: string) => {
-    if (!transformedData) return []
-    if (categoryFilter === "all") return transformedData
-
-    return transformedData.filter((article) => article.category === categoryFilter)
-  }
-
-  // Filter by date if dateFilter is provided
-  const filteredByDate = dateFilter
-    ? transformedData.filter((article) => {
-        const articleDate = new Date(article.date).toISOString().split("T")[0]
-        return articleDate === dateFilter
-      })
-    : transformedData
-
   return {
-    news: filteredByDate,
+    news: transformedData,
     isLoading,
     error,
-    getNewsByCategory,
+    mutate, // Expose the mutate function to allow manual revalidation
   }
 }

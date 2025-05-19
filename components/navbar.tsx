@@ -28,7 +28,7 @@ export function Navbar() {
                         <Shield className="h-10 w-10 text-cyan-500" />
 
                         <div className="flex flex-col ">
-                            <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-red-600">Q</span> </span>
+                            <span className="text-xl font-bold tracking-tight">DeepCyber<span className="text-cyan-600">Q</span> </span>
                             <div className="text-xs"> Your AI-Powered Cyber Threat Companion.</div>
                         </div>
                     </Link>
